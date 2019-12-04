@@ -70,7 +70,7 @@ def resolve_data_objects(objects, project=None, folder=None, batchsize=1000):
     return results
 
 
-def _find(api_method, query, limit, return_handler, first_page_size, **kwargs):
+def _find(api_method, query, limit, return_handler, first_page_size, max_result_set_size=1000, result_key="results", **kwargs):
     ''' Takes an API method handler (dxpy.api.find*) and calls it with *query*,
     and then wraps a generator around its output. Used by the methods below.
 
@@ -94,7 +94,7 @@ def _find(api_method, query, limit, return_handler, first_page_size, **kwargs):
             else:
                 return result
 
-        for i in resp["results"]:
+        for i in resp[result_key]:
             if num_results == limit:
                 return
             num_results += 1
@@ -103,7 +103,7 @@ def _find(api_method, query, limit, return_handler, first_page_size, **kwargs):
         # set up next query
         if resp["next"] is not None:
             query["starting"] = resp["next"]
-            query["limit"] = min(query["limit"]*2, 1000)
+            query["limit"] = min(query["limit"]*2, max_result_set_size)
         else:
             return
 

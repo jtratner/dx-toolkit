@@ -24,6 +24,7 @@ for more details.
 from __future__ import print_function, unicode_literals, division, absolute_import
 
 import os, sys, json, time
+import contextlib
 import platform
 from collections import MutableMapping
 from shutil import rmtree
@@ -314,3 +315,27 @@ class DXConfig(MutableMapping):
             for var in self.VAR_NAMES:
                 self[var] = self.defaults.get(var, "")
             self.save()
+
+    @contextlib.contextmanager
+    def temp_config(self, **kwargs):
+        """Temporarily use a particular config, reset on exit.
+
+        Examples:
+
+        >>> print(dxpy.config["APISERVER_HOST"])
+        api.dnanexus.com
+        >>> with dxpy.config.temp_config(APISERVER_HOST='auth.dnanexus.com'):
+        ...    print(dxpy.config["APISERVER_HOST"]))
+        auth.dnanexus.com
+        >>> print(dxpy.config["APISERVER_HOST"])
+        """
+
+        non_existent = {k for k in kwargs if k not in self}
+        original = {k: self[k] for k in kwargs if k in self}
+        try:
+            yield
+        finally:
+            for k in non_existent:
+                self.pop(k, None)
+            for k, v in original.items():
+                self[k] = v
