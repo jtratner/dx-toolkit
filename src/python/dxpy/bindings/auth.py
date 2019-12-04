@@ -196,7 +196,7 @@ def new_auth_token(scope, label, expires=None, authserver_host=None, authserver_
     if label:
         input_params["label"] = label
     if expires:
-        input_params["expires"] = normalize_time_input(expires)
+        input_params["expires"] = normalize_time_input(expires, future=True)
     return _dx_http_request_to_auth_server(
         "/system/newAuthToken",
         input_params,
